@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Güvenlik Uyarısı</title>
+    <style>
+        /* Sayfanın tamamını kapla, kaydırmayı gizle */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000; /* Arka plan siyah */
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        /* 0 ve 1'lerin akacağı canvas (tuval) alanı */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Mesajın arkasında kalsın */
+        }
+
+        /* Ortadaki mesaj kutusu */
+        .message-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10; /* Canvas'ın önünde olsun */
+            
+            color: #0F0; /* Parlak yeşil yazı rengi */
+            font-size: 2.5em; /* Büyük yazı boyutu (isteğe bağlı ayarla) */
+            text-align: center;
+            
+            /* Yazıya parlama efekti */
+            text-shadow: 0 0 10px #0F0, 0 0 20px #0F0; 
+            
+            /* Okunabilirliği artırmak için hafif koyu bir arka plan */
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 40px;
+            border: 1px solid #0F0;
+            box-shadow: 0 0 15px #0F0 inset;
+        }
+
+        /* Mobil cihazlar için yazı boyutunu küçült */
+        @media (max-width: 600px) {
+            .message-container {
+                font-size: 1.5em;
+                padding: 20px;
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrix-canvas"></canvas>
+
+    <div class="message-container">
+        Gördüğün her linke tıklama,<br>
+        her QR kodu okutma.
+        <br><br>
+        Unutma ki en büyük güvenlik açığı<br>
+        insanoğludur.
+    </div>
+
+    <script>
+        // Canvas (tuval) elementini ve bağlamını al
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Tuval boyutunu tüm pencereye ayarla
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Kullanılacak karakterler (0 ve 1'ler)
+        const chars = "01";
+        
+        // Font boyutu ve sütun sayısı
+        const fontSize = 16;
+        const columns = Math.floor(canvas.width / fontSize);
+
+        // Her sütunun dikey pozisyonunu (y ekseni) tutan dizi
+        // Başlangıçta hepsi 1 (en tepede)
+        const drops = [];
+        for (let i = 0; i < columns; i++) {
+            drops[i] = 1;
+        }
+
+        // Çizim fonksiyonu
+        function drawMatrix() {
+            // Arka plana hafif şeffaf siyah bir katman çiz.
+            // Bu, karakterlerin "solma" (fading) efektini yaratır.
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Karakterlerin rengi (yeşil)
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px monospace';
+
+            // Her sütun için döngü
+            for (let i = 0; i < columns; i++) {
+                // Rastgele bir karakter seç (0 veya 1)
+                const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                
+                // Karakteri çiz (x, y)
+                const x = i * fontSize;
+                const y = drops[i] * fontSize;
+                ctx.fillText(text, x, y);
+
+                // Damlayı (drop) aşağı hareket ettir
+                drops[i]++;
+
+                // Eğer damla ekranın dışına çıkarsa,
+                // onu rastgele bir şansla (Math.random() > 0.975) tekrar başa al.
+                // Bu, akışın kesik kesik olmasını sağlar.
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0; // Başa dön
+                }
+            }
+        }
+
+        // 'drawMatrix' fonksiyonunu belirli aralıklarla (örneğin 35ms) sürekli çalıştır
+        setInterval(drawMatrix, 35);
+
+        // Pencere yeniden boyutlandırılırsa canvas'ı da ayarla
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            // Sütun sayısını ve drops dizisini yeniden hesaplamamız gerekebilir
+            // ama basitlik için şimdilik atlıyoruz.
+        });
+    </script>
+
+</body>
+</html>
